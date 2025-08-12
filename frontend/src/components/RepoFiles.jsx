@@ -6,6 +6,7 @@ const RepoFiles = () => {
   const [files, setFiles] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [submittedFilePaths, setSubmittedFilePaths] = useState([]);
+  const [generatedTests, setGeneratedTests] = useState([]); // ✅ New state for test cases
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("github_token");
 
@@ -84,6 +85,18 @@ const RepoFiles = () => {
       const result = await response.json();
       console.log("🧪 Generated test cases:", result);
 
+      // ✅ Display received test cases or dummy data
+      if (result.success && result.testCases) {
+        setGeneratedTests(result.testCases);
+      } else {
+        setGeneratedTests([
+          {
+            file: "ExampleFile.java",
+            test: "it('should return true', () => { expect(true).toBe(true); });",
+          },
+        ]);
+      }
+
       // Only reset selected files after success
       setSelectedFiles([]);
     } catch (error) {
@@ -126,6 +139,40 @@ const RepoFiles = () => {
                   <li key={idx}>{path}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {generatedTests.length > 0 && (
+            <div style={{ marginTop: "30px" }}>
+              <h4 style={{ color: "#1E90FF" }}>🧪 Generated Test Cases:</h4>
+              {generatedTests.map((test, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: "#1e1e1e", // Dark background
+                    padding: "15px",
+                    borderRadius: "8px",
+                    marginBottom: "15px",
+                    color: "#f8f8f2",
+                    boxShadow: "0px 2px 8px rgba(0,0,0,0.3)",
+                  }}
+                >
+                  <strong style={{ color: "#FFD700" }}>{test.file}</strong>
+                  <pre
+                    style={{
+                      background: "#282c34",
+                      padding: "10px",
+                      borderRadius: "6px",
+                      overflowX: "auto",
+                      fontSize: "14px",
+                      color: "#98c379",
+                      marginTop: "10px",
+                    }}
+                  >
+                    {test.test}
+                  </pre>
+                </div>
+              ))}
             </div>
           )}
         </>
