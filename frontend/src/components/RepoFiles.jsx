@@ -6,7 +6,7 @@ const RepoFiles = () => {
   const [files, setFiles] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [submittedFilePaths, setSubmittedFilePaths] = useState([]);
-  const [generatedTests, setGeneratedTests] = useState([]); // ✅ New state for test cases
+  const [generatedTests, setGeneratedTests] = useState([]);
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("github_token");
 
@@ -73,7 +73,7 @@ const RepoFiles = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Optional
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           repo: selectedRepo,
@@ -85,19 +85,18 @@ const RepoFiles = () => {
       const result = await response.json();
       console.log("🧪 Generated test cases:", result);
 
-      // ✅ Display received test cases or dummy data
       if (result.success && result.testCases) {
         setGeneratedTests(result.testCases);
       } else {
         setGeneratedTests([
           {
             file: "ExampleFile.java",
+            summary: "This is a sample summary of generated test cases.",
             test: "it('should return true', () => { expect(true).toBe(true); });",
           },
         ]);
       }
 
-      // Only reset selected files after success
       setSelectedFiles([]);
     } catch (error) {
       console.error("Error generating test cases:", error);
@@ -149,7 +148,7 @@ const RepoFiles = () => {
                 <div
                   key={index}
                   style={{
-                    background: "#1e1e1e", // Dark background
+                    background: "#1e1e1e",
                     padding: "15px",
                     borderRadius: "8px",
                     marginBottom: "15px",
@@ -157,7 +156,26 @@ const RepoFiles = () => {
                     boxShadow: "0px 2px 8px rgba(0,0,0,0.3)",
                   }}
                 >
+                  {/* File name */}
                   <strong style={{ color: "#FFD700" }}>{test.file}</strong>
+
+                  {/* Summary */}
+                  {test.summary && (
+                    <p
+                      style={{
+                        marginTop: "10px",
+                        background: "#2d2d2d",
+                        padding: "10px",
+                        borderRadius: "6px",
+                        fontSize: "14px",
+                        color: "#dcdcdc",
+                      }}
+                    >
+                      {test.summary}
+                    </p>
+                  )}
+
+                  {/* Test code */}
                   <pre
                     style={{
                       background: "#282c34",
@@ -175,6 +193,7 @@ const RepoFiles = () => {
               ))}
             </div>
           )}
+
         </>
       )}
     </div>

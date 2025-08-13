@@ -48,12 +48,12 @@ app.post("/api/generate-tests", async (req, res) => {
       fileContents.push({ filePath, content });
     }
 
-    // Generate tests using OpenAI
+    // Generate summaries & tests
     const allTests = [];
     for (const { filePath, content } of fileContents) {
       const extension = filePath.split('.').pop().toLowerCase();
 
-      // Language-specific prompt
+      // Language-specific instructions
       let testInstructions = "";
       if (extension === "java") {
         testInstructions = "Generate clean, minimal, and working JUnit 5 test cases for this Java file. Use assertEquals where needed.";
@@ -65,7 +65,40 @@ app.post("/api/generate-tests", async (req, res) => {
         testInstructions = "Generate clean, minimal, and working unit tests for this file based on its programming language.";
       }
 
-      const prompt = `
+      // 1️⃣ Generate Summary
+      const summaryPrompt = `
+You are an AI summarizer.
+Summarize the purpose of this code file in 2-3 short sentences.
+File: ${filePath}
+Code:
+${content}
+`;
+
+      const summaryResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a concise code summarizer." },
+            { role: "user", content: summaryPrompt }
+          ],
+          temperature: 0
+        })
+      });
+
+      if (!summaryResponse.ok) {
+        throw new Error(`OpenAI API error (summary): ${summaryResponse.statusText}`);
+      }
+
+      const summaryData = await summaryResponse.json();
+      const summaryText = summaryData.choices?.[0]?.message?.content?.trim() || "No summary generated.";
+
+      // 2️⃣ Generate Tests
+      const testPrompt = `
 You are an AI that writes unit tests.
 ${testInstructions}
 
@@ -86,20 +119,20 @@ Write only the test code.
           model: "gpt-4o-mini",
           messages: [
             { role: "system", content: "You are a helpful AI that writes professional unit tests." },
-            { role: "user", content: prompt }
+            { role: "user", content: testPrompt }
           ],
           temperature: 0
         })
       });
 
       if (!aiResponse.ok) {
-        throw new Error(`OpenAI API error: ${aiResponse.statusText}`);
+        throw new Error(`OpenAI API error (tests): ${aiResponse.statusText}`);
       }
 
       const aiData = await aiResponse.json();
       const testCode = aiData.choices?.[0]?.message?.content || "// No test generated";
 
-      allTests.push({ file: filePath, test: testCode });
+      allTests.push({ file: filePath, summary: summaryText, test: testCode });
     }
 
     return res.json({ success: true, testCases: allTests });
