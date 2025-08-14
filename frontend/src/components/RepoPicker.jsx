@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useRepo } from "../context/RepoContext.jsx";
 
-const RepoPicker = () => {
+const RepoPicker = ({ darkMode }) => {
   const [repos, setRepos] = useState([]);
   const { selectedRepo, setSelectedRepo } = useRepo();
-
   const token = localStorage.getItem("github_token");
 
   useEffect(() => {
@@ -27,15 +26,17 @@ const RepoPicker = () => {
   }, [token]);
 
   const handleSelect = (e) => {
-    const selected = e.target.value;
-    setSelectedRepo(selected);
-    console.log("Selected Repo:", selected);
+    setSelectedRepo(e.target.value);
   };
 
   return (
-    <div>
-      <h2>Select a Repository</h2>
-      <select onChange={handleSelect} value={selectedRepo}>
+    <div className={`p-3 rounded mb-3 ${darkMode ? 'bg-secondary text-white' : 'bg-light text-dark'}`}>
+      <h5>📂 Select a Repository</h5>
+      <select
+        className="form-select mt-2"
+        onChange={handleSelect}
+        value={selectedRepo || ""}
+      >
         <option value="">-- Select Repo --</option>
         {repos.map((repo) => (
           <option key={repo.id} value={repo.full_name}>

@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import RepoPicker from "../components/RepoPicker.jsx";
 import RepoFiles from "../components/RepoFiles.jsx";
 
-function Dashboard() {
+function Dashboard({ darkMode }) {
   const [token, setToken] = useState(null);
+  const [generatedTests, setGeneratedTests] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,13 +27,41 @@ function Dashboard() {
   }, [navigate]);
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h2>✅ Logged in with GitHub!</h2>
+    <div className={`container-fluid mt-4 ${darkMode ? 'bg-dark text-white' : ''}`}>
+      <h2 className="text-center mb-4">✅ Logged in with GitHub!</h2>
       {token && (
-        <>
-          <RepoPicker />
-          <RepoFiles />
-        </>
+        <div className="row">
+          {/* Left Side */}
+          <div className="col-md-6">
+            <RepoPicker darkMode={darkMode} />
+            <RepoFiles darkMode={darkMode} setGeneratedTests={setGeneratedTests} />
+          </div>
+
+          {/* Right Side */}
+          <div className="col-md-6">
+            {generatedTests.length > 0 && (
+              <>
+                <h4 className="text-info">🧪 Generated Test Cases</h4>
+                {generatedTests.map((test, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 rounded shadow mb-3 ${darkMode ? 'bg-secondary text-white' : 'bg-light'}`}
+                  >
+                    <h5 className="text-primary">{test.file}</h5>
+                    {test.summary && (
+                      <p className={`p-2 rounded ${darkMode ? 'bg-dark text-white' : 'bg-secondary text-dark'}`}>
+                        {test.summary}
+                      </p>
+                    )}
+                    <pre className={`p-3 rounded ${darkMode ? 'bg-dark text-info' : 'bg-white text-dark'}`}>
+                      {test.test}
+                    </pre>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
