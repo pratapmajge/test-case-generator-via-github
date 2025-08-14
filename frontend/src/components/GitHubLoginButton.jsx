@@ -2,7 +2,8 @@ import React from 'react';
 
 export default function GitHubLoginButton() {
   const handleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/github";
+    // Updated backend URL for OAuth
+    window.location.href = "https://test-case-generator-via-github.onrender.com/auth/github";
   };
 
   return (
